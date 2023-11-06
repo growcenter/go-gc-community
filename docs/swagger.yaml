@@ -1,0 +1,32 @@
+definitions:
+  response.Response:
+    properties:
+      responseCode:
+        type: string
+      responseMessage:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/health:
+    get:
+      consumes:
+      - application/json
+      description: This is the endpoint to check the system database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response indicates that the request succeeded and the resources
+            has been fetched and transmitted in the message body
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: failed Connect to the Database
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Health Check
+      tags:
+      - default-health
+swagger: "2.0"

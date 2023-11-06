@@ -1,0 +1,6 @@
+msql:
+  user: ""
+  password: ""
+  host: ""
+  name: ""
+  charset: ""
