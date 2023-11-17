@@ -9,7 +9,9 @@ import (
 	"go-gc-community/internal/server"
 	"go-gc-community/internal/usecases"
 	"go-gc-community/pkg/database/msql"
+	"go-gc-community/pkg/google"
 	"go-gc-community/pkg/logger"
+	"go-gc-community/pkg/token"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,9 +31,23 @@ func Run() {
 		logger.Error(err)
 	}
 
+	// Token
+	appToken, err := token.NewAuthorization(cfg.Auth.Secret, cfg.Auth.TokenExpiry)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	// Google
+	authGoogle, err := google.NewGoogle(cfg.Google.State, cfg.Google.ClientId, cfg.Google.ClientSecret, cfg.Google.RedirectUrl)
+	if err != nil {
+		logger.Error(err)
+	}
+
 	repository := repositories.NewRepositories(msql)
 	usecase := usecases.NewUsecases(usecases.Dependencies{
 		Repository: repository,
+		Token: appToken,
+		Google: authGoogle,
 	})
 	handler := handler.NewHandler(usecase)
 	server := server.NewServer(cfg, handler.Init(cfg))

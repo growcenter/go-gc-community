@@ -4,3 +4,11 @@ msql:
   host: ""
   name: ""
   charset: ""
+google:
+  client_id: ""
+  client_secret: ""
+  redirect: ""
+  state: ""
+auth:
+  secret: ""
+  token_expiry: 2

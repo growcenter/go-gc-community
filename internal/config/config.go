@@ -18,6 +18,8 @@ type  (
 		Environment	string
 		MSql		MSqlConfig
 		Http		HttpConfig
+		Google		GoogleConfig
+		Auth		AuthConfig
 	}
 
 	AppConfig struct {
@@ -38,6 +40,20 @@ type  (
 		ReadTimeout        time.Duration `mapstructure:"readTimeout"`
 		WriteTimeout       time.Duration `mapstructure:"writeTimeout"`
 		MaxHeaderMegabytes int           `mapstructure:"maxHeaderBytes"`
+	}
+
+	GoogleConfig struct {
+		ClientId	string
+		ClientSecret string
+		RedirectUrl	string
+		State string
+	}
+
+	AuthConfig struct {
+		Secret	string
+		//TokenExpiry time.Duration
+		TokenExpiry int
+		RefreshExpiry time.Duration
 	}
 )
 
@@ -79,6 +95,18 @@ func setEnvironment(cfg *Config) {
 
 	// Http
 	cfg.Http.Port = defaultHTTPPort
+
+	// Google Oauth
+	cfg.Google.ClientId = viper.GetString("google.client_id")
+	cfg.Google.ClientSecret = viper.GetString("google.client_secret")
+	cfg.Google.RedirectUrl = viper.GetString("google.redirect")
+	cfg.Google.State = viper.GetString("google.state")
+
+	// JWT
+	cfg.Auth.Secret = viper.GetString("auth.secret")
+	//cfg.Auth.TokenExpiry = viper.GetDuration("auth.token_expiry")
+	cfg.Auth.TokenExpiry = viper.GetInt("auth.token_expiry")
+	cfg.Auth.RefreshExpiry = viper.GetDuration("auth.refresh_expiry")
 }
 
 func parse() error {

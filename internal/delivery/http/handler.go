@@ -60,9 +60,9 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 	}
 
 	// Init router
-	router.GET("/", func(c *gin.Context) {
+	router.GET("/", func(ctx *gin.Context) {
 		message := fmt.Sprintf("Welcome to %s", cfg.App.Name)
-		c.String(http.StatusOK, message)
+		ctx.String(http.StatusOK, message)
 	})
 	
 	version1 := v1.NewV1Handler(*h.usecase)
@@ -73,5 +73,12 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 		health.Init(api)
 	}
 
+	//fs := http.FileServer(http.Dir("public"))
+	//router.StaticFS("/lele", http.Dir("public/index.html"))
+	//router.LoadHTMLGlob("../../public/*")
+	router.LoadHTMLFiles("public/index.html")
+	router.GET("lele", func(ctx *gin.Context) {
+		ctx.HTML(200, "index.html", map[string]string{"title": "homepage"})
+	})
 	return router
 }
