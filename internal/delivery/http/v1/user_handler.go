@@ -21,6 +21,12 @@ func (h *V1Handler) userRoutes(api *gin.RouterGroup) {
 		}*/
 		user.GET("/login", h.Login)
 		user.GET("/callback", h.Callback)
+
+		authorized := user.Group("/", h.Authorize)
+		{
+			authorized.POST("/inquiry", h.Inquiry)
+			authorized.GET("/inquire", h.Inquire)
+		}
 	}
 }
 
@@ -74,5 +80,67 @@ func (uh *V1Handler) Callback(ctx *gin.Context) {
 		AccountNumber: user.AccountNumber,
 		UserID: user.ID,
 		Token: appToken,
+	})
+}
+
+// @Summary Inquire User
+// @Tags user-inquire
+// @Description This is the endpoint retrieve user data
+// @ModuleID User
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} models.UserLoginResponse "Response indicates that the request succeeded and user account is created"
+// @Success 200 {object} models.UserLoginResponse "Response indicates that the request succeeded and user is logged in"
+// @Failure 422 {object} response.Response "There is something wrong with how user input the data"
+// @Router api/v1.0/user/inquiry [get] 
+func (uh *V1Handler) Inquiry(ctx *gin.Context) {
+	var request models.InquiryUserRequest
+
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "02", errors.DATA_INVALID.Error)
+	}
+
+	userData, err := uh.usecase.User.Inquire(&request)
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "00", "03", err)
+	}
+
+	response.Success(ctx.Writer, http.StatusOK, models.InquiryUserResponse{
+		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+		ResponseMessage: response.SUCCESS_DEFAULT,
+		AccountNumber: userData.AccountNumber,
+		Name: userData.Name,
+		State: userData.State,
+		Role: userData.RoleId,
+		Email: userData.Email,
+	})
+}
+
+func (uh *V1Handler) Inquire(ctx *gin.Context) {
+	accountNumber, ok := ctx.Get("accountNumber")
+	if !ok {
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "04", errors.DATA_INVALID.Error)
+	}
+	
+	var request models.InquiryUserRequest
+	request.AccountNumber = accountNumber.(string)
+
+	userData, err := uh.usecase.User.Inquire(&request)
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "00", "05", err)
+	}
+
+	response.Success(ctx.Writer, http.StatusOK, models.InquiryUserResponse{
+		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+		ResponseMessage: "Response has been successfully proceeded.",
+		AccountNumber: userData.AccountNumber,
+		Name: userData.Name,
+		State: userData.State,
+		Role: userData.RoleId,
+		Email: userData.Email,
 	})
 }
