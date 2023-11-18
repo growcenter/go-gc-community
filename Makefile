@@ -4,7 +4,7 @@ run:
 	@go run cmd/app/main.go
 
 create-migration:
-	@migrate create -ext sql -dir ./db/migrations $(MIGRATION_NAME)
+	@migrate create -ext sql -dir ./migrations $(MIGRATION_NAME)
 
 migrate:
 	@migrate -path migrations -database "$(DATABASE_URL)" up
