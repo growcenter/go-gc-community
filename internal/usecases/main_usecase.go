@@ -16,14 +16,17 @@ type Dependencies struct {
 type Usecases struct {
 	Health	healthUsecase
 	User	userUsecase
+	Event 	eventUsecase
 }
 
 func NewUsecases(dep Dependencies) *Usecases {
 	health := NewHealthUsecase(dep.Repository.Health)
 	user := NewUserUsecase(dep.Repository.User, dep.Authorization, *dep.Google)
+	event := NewEventUsecase(dep.Repository.Event)
 
 	return &Usecases{
 		Health: *health,
 		User: *user,
+		Event: *event,
 	}
 }

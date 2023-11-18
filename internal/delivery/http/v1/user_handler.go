@@ -59,7 +59,7 @@ func (uh *V1Handler) Callback(ctx *gin.Context) {
 	user, appToken, statusCode, err := uh.usecase.User.Account(state, code)
 	if err != nil {
 		logger.Error(err.Error())
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "01", errors.UNAUTHORIZED.Error)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "01", err)
 	}
 
 	if statusCode == 201 {
