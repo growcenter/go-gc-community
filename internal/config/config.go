@@ -104,7 +104,6 @@ func setEnvironment(cfg *Config) {
 
 	// JWT
 	cfg.Auth.Secret = viper.GetString("auth.secret")
-	//cfg.Auth.TokenExpiry = viper.GetDuration("auth.token_expiry")
 	cfg.Auth.TokenExpiry = viper.GetInt("auth.token_expiry")
 	cfg.Auth.RefreshExpiry = viper.GetDuration("auth.refresh_expiry")
 }

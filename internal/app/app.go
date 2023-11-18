@@ -8,10 +8,10 @@ import (
 	"go-gc-community/internal/repositories"
 	"go-gc-community/internal/server"
 	"go-gc-community/internal/usecases"
+	"go-gc-community/pkg/authorization"
 	"go-gc-community/pkg/database/msql"
 	"go-gc-community/pkg/google"
 	"go-gc-community/pkg/logger"
-	"go-gc-community/pkg/token"
 	"net/http"
 	"os"
 	"os/signal"
@@ -32,7 +32,7 @@ func Run() {
 	}
 
 	// Token
-	appToken, err := token.NewAuthorization(cfg.Auth.Secret, cfg.Auth.TokenExpiry)
+	authService, err := authorization.NewAuthorization(cfg.Auth.Secret, cfg.Auth.TokenExpiry)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -46,10 +46,10 @@ func Run() {
 	repository := repositories.NewRepositories(msql)
 	usecase := usecases.NewUsecases(usecases.Dependencies{
 		Repository: repository,
-		Token: appToken,
+		Authorization: authService,
 		Google: authGoogle,
 	})
-	handler := handler.NewHandler(usecase)
+	handler := handler.NewHandler(usecase, authService)
 	server := server.NewServer(cfg, handler.Init(cfg))
 
 	go func() {

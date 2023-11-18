@@ -40,3 +40,20 @@ type (
 		UserID			int			`json:"userID"`
 	}
 )
+
+type (
+	InquiryUserRequest struct {
+		AccountNumber	string			`json:"accountNumber" validate:"required"`
+		Additional		AdditionalInfo	`json:"additionalInfo"`
+	}
+	
+	InquiryUserResponse struct {
+		ResponseCode	string		`json:"responseCode"`
+		ResponseMessage	string		`json:"responseMessage"`
+		AccountNumber	string		`json:"accountNumber"`
+		Name			string		`json:"name"`
+		State			string		`json:"state"`
+		Role			string		`json:"role"`
+		Email			string		`json:"email"`
+	}
+)

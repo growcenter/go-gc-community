@@ -43,5 +43,5 @@ func (h *HealthHandler) Check(ctx *gin.Context) {
 		response.Error(ctx.Writer, http.StatusInternalServerError, "00", "00", errors.New("failed Connect to the Database"))
 	}
 
-	response.Success(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT)
+	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT)
 }
