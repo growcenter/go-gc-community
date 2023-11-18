@@ -16,6 +16,6 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-*.yaml
+/config/config.yaml
 # Go workspace file
 go.work
