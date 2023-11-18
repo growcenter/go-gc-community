@@ -4,25 +4,26 @@ import (
 	"fmt"
 	"go-gc-community/internal/models"
 	"go-gc-community/internal/repositories"
+	"go-gc-community/pkg/authorization"
 	"go-gc-community/pkg/google"
-	"go-gc-community/pkg/token"
 	"strings"
 )
 
 type User interface {
 	//Redirect() (string, error)
 	Redirect() (string)
-	Account(request *models.UserLoginRequest) (*models.User, string, error)
+	Account(state string, code string) (*models.User, string, int, error)
+	Inquire(request *models.InquiryUserRequest) (*models.User, error)
 }
 
 type userUsecase struct {
 	ur repositories.User
-	t token.Authorization
+	a authorization.Authorization
 	g google.Goog
 }
 
-func NewUserUsecase(ur repositories.User, t token.Authorization, g google.Goog) *userUsecase {
-	return &userUsecase{ur, t, g}
+func NewUserUsecase(ur repositories.User, a authorization.Authorization, g google.Goog) *userUsecase {
+	return &userUsecase{ur, a, g}
 }
 
 func (uu *userUsecase) Redirect() (string) {
@@ -66,7 +67,7 @@ func (uu *userUsecase) Account(state string, code string) (*models.User, string,
 			return valid, "", 0, err
 		}
 
-		appToken, err := uu.t.Generate(valid.AccountNumber, valid.ID)
+		appToken, err := uu.a.Generate(valid.AccountNumber, valid.ID)
 		if err != nil {
 			return valid, "", 0, err
 		}
@@ -74,10 +75,19 @@ func (uu *userUsecase) Account(state string, code string) (*models.User, string,
 		return valid, appToken, 201, nil
 	}
 
-	appToken, err := uu.t.Generate(exist.AccountNumber, exist.ID)
+	appToken, err := uu.a.Generate(exist.AccountNumber, exist.ID)
 	if err != nil {
 		return exist, "", 0, err
 	}
 
 	return exist, appToken, 200, nil
+}
+
+func (uu *userUsecase) Inquire(request *models.InquiryUserRequest) (*models.User, error) {
+	user, err := uu.ur.First("account_number", request.AccountNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

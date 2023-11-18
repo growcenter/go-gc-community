@@ -43,11 +43,31 @@ func Error(w gin.ResponseWriter,statusCode int, featureType string, errorNumber 
 	return
 }
 
-func Success(w gin.ResponseWriter,statusCode int, featureType string, successMessage string) {
+func Default(w gin.ResponseWriter,statusCode int, featureType string, successMessage string) {
 	bt, err := json.Marshal(Response{
 		ResponseCode: fmt.Sprintf("%d%s00", statusCode, featureType),
 		ResponseMessage: successMessage,
 	})
+	if err != nil {
+		bt, _ = json.Marshal(Response{
+			ResponseCode: "5000000",
+			ResponseMessage: custom.INTERNAL_SERVER_ERROR.Message,
+		})
+		
+		w.Header().Set(CONTENT_TYPE, APPLICATION_JSON)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(bt)
+		return
+	}
+
+	w.Header().Set(CONTENT_TYPE, APPLICATION_JSON)
+	w.WriteHeader(statusCode)
+	w.Write(bt)
+	return
+}
+
+func Success(w gin.ResponseWriter, statusCode int, response interface{}) {
+	bt, err := json.Marshal(response)
 	if err != nil {
 		bt, _ = json.Marshal(Response{
 			ResponseCode: "5000000",

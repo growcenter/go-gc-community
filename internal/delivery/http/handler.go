@@ -7,6 +7,7 @@ import (
 	health "go-gc-community/internal/delivery/http/health"
 	v1 "go-gc-community/internal/delivery/http/v1"
 	"go-gc-community/internal/usecases"
+	"go-gc-community/pkg/authorization"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,11 +17,13 @@ import (
 
 type Handler struct {
 	usecase *usecases.Usecases
+	authorization *authorization.Auth
 }
 
-func NewHandler(usecase *usecases.Usecases) *Handler {
+func NewHandler(usecase *usecases.Usecases, authorization *authorization.Auth) *Handler {
 	return &Handler{
 		usecase: usecase,
+		authorization: authorization,
 	}
 }
 
@@ -65,7 +68,7 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 		ctx.String(http.StatusOK, message)
 	})
 	
-	version1 := v1.NewV1Handler(*h.usecase)
+	version1 := v1.NewV1Handler(*h.usecase, *h.authorization)
 	health := health.NewHealthHandler(*h.usecase)
 	api := router.Group("/api")
 	{

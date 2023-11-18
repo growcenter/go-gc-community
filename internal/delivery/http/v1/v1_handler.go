@@ -2,18 +2,21 @@ package v1
 
 import (
 	"go-gc-community/internal/usecases"
+	"go-gc-community/pkg/authorization"
 
 	"github.com/gin-gonic/gin"
 )
 
 type V1Handler struct {
 	usecase *usecases.Usecases
+	authorization *authorization.Auth
 
 }
 
-func NewV1Handler(usecase usecases.Usecases) *V1Handler {
+func NewV1Handler(usecase usecases.Usecases, authorization authorization.Auth) *V1Handler {
 	return &V1Handler{
 		usecase: &usecase,
+		authorization: &authorization,
 	}
 }
 
