@@ -7,7 +7,7 @@ create-migration:
 	@migrate create -ext sql -dir ./db/migrations $(MIGRATION_NAME)
 
 migrate:
-	@migrate -path db/migrations -database "$(DATABASE_URL)" up
+	@migrate -path migrations -database "$(DATABASE_URL)" up
 
 destroy-db:
-	@migrate -path db/migrations -database "$(DATABASE_URL)" down
+	@migrate -path migrations -database "$(DATABASE_URL)" down
