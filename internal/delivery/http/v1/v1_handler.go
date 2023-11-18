@@ -24,5 +24,6 @@ func (v1h *V1Handler) Init(api *gin.RouterGroup) {
 	api = api.Group("/v1.0")
 	{
 		v1h.userRoutes(api)
+		v1h.eventRoutes(api)
 	}
 }
