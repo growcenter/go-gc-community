@@ -1,0 +1,27 @@
+version: "3"
+
+include:
+  - docker/compose/mysql.yaml
+
+services:
+  app:
+    image: go-gc-community:1.0.0
+    hostname: go-gc-community
+    container_name: go-gc-community
+    ports:
+      - 8080:8080
+    restart: "unless-stopped"
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      tags:
+        - "go-gc-community:1.0.0"
+    profiles:
+      - prod
+      - build
+    networks:
+      - go-gc-community
+
+networks:
+  go-gc-community:
+    name: go-gc-community
