@@ -10,7 +10,6 @@ import (
 )
 
 type User interface {
-	//Redirect() (string, error)
 	Redirect() (string)
 	Account(state string, code string) (*models.User, string, int, error)
 	Inquire(request *models.InquiryUserRequest) (*models.User, error)

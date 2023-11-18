@@ -76,9 +76,6 @@ func (h *Handler) Init(cfg *config.Config) *gin.Engine {
 		health.Init(api)
 	}
 
-	//fs := http.FileServer(http.Dir("public"))
-	//router.StaticFS("/lele", http.Dir("public/index.html"))
-	//router.LoadHTMLGlob("../../public/*")
 	router.LoadHTMLFiles("public/index.html")
 	router.GET("lele", func(ctx *gin.Context) {
 		ctx.HTML(200, "index.html", map[string]string{"title": "homepage"})
