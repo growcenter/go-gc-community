@@ -17,6 +17,7 @@ type Sessions struct {
 	BookedSeats			int				`json:"booked_seats"`
 	ScannedSeats		int				`json:"scanned_seats"`
 	UnscannedSeats		int				`json:"unscanned_seats"`
+	TotalRegistration	int				`json:"total_registration"`
 	OpenRegistration	time.Time		`json:"open_registration"`
 	ClosedRegistration	time.Time		`json:"closed_registration"`	
 	CreatedAt			time.Time		`json:"created_at"`

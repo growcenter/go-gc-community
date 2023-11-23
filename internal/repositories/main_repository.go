@@ -7,6 +7,7 @@ type Repositories struct {
 	User User
 	Event Event
 	Session Session
+	Registration Registration
 }
 
 func NewRepositories (db *gorm.DB) *Repositories {
@@ -15,5 +16,6 @@ func NewRepositories (db *gorm.DB) *Repositories {
 		User: NewUserRepository(db),
 		Event: NewEventRepository(db),
 		Session: NewSessionRepository(db),
+		Registration: NewRegistrationRepository(db),
 	}
 }

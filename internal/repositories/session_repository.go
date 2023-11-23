@@ -8,10 +8,11 @@ import (
 )
 
 type Session interface {
-	Find(kind string, content string) (*models.Sessions, error)
+	Find(kind string, content interface{}) (*models.Sessions, error)
 	All() ([]*models.Sessions, error)
 	AllWithFilter(kind string, content interface{}) ([]*models.Sessions, error)
 	UpdateFilter(filterColumn string, content interface{}, changesColumn string, changes string) (*gorm.DB)
+	Update(session *models.Sessions) (*models.Sessions, error)
 }
 
 type sessionRepository struct {
@@ -22,7 +23,7 @@ func NewSessionRepository(db *gorm.DB) *sessionRepository {
 	return &sessionRepository{db}
 }
 
-func (sr *sessionRepository) Find(kind string, content string) (*models.Sessions, error) {
+func (sr *sessionRepository) Find(kind string, content interface{}) (*models.Sessions, error) {
 	var session *models.Sessions
 	column := fmt.Sprintf("%s = ?", kind)
 	err := sr.db.Where(column, content).Find(&session).Error
@@ -62,4 +63,13 @@ func (sr *sessionRepository) UpdateFilter(filterColumn string, content interface
 	}*/
 	
 	return sr.db.Model(&session).Where(filterColumn, content).Update(changesColumn, changes)
+}
+
+func (sr *sessionRepository) Update(session *models.Sessions) (*models.Sessions, error) {
+	err := sr.db.Save(&session).Error
+    if err != nil {
+        return session, err
+    }
+
+    return session, nil
 }
