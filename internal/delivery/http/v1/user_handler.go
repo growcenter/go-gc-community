@@ -60,6 +60,7 @@ func (uh *V1Handler) Callback(ctx *gin.Context) {
 	if err != nil {
 		logger.Error(err.Error())
 		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "01", err)
+		return
 	}
 
 	if statusCode == 201 {

@@ -22,7 +22,7 @@ type Usecases struct {
 func NewUsecases(dep Dependencies) *Usecases {
 	health := NewHealthUsecase(dep.Repository.Health)
 	user := NewUserUsecase(dep.Repository.User, dep.Authorization, *dep.Google)
-	event := NewEventUsecase(dep.Repository.Event)
+	event := NewEventUsecase(dep.Repository.User, dep.Repository.Event, dep.Repository.Session, dep.Repository.Registration)
 
 	return &Usecases{
 		Health: *health,

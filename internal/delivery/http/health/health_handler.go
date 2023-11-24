@@ -41,6 +41,7 @@ func (h *HealthHandler) Check(ctx *gin.Context) {
 	if err != nil {
 		logger.Error("failed connect to the database")
 		response.Error(ctx.Writer, http.StatusInternalServerError, "00", "00", errors.New("failed Connect to the Database"))
+		return
 	}
 
 	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT)
