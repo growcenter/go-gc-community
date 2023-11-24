@@ -52,3 +52,24 @@ type (
 		BookingCode			string					`json:"bookingCode"`
 	}
 )
+
+type (
+	ViewRegistrationResponse struct {
+		ResponseCode		string					`json:"responseCode"`
+		ResponseMessage		string					`json:"responseMessage"`
+		MainEmail			string					`json:"mainEmail"`
+		MainName			string					`json:"mainName"`
+		MainStatus			string					`json:"mainStatus"`
+		MainAccountNumber	string					`json:"mainAccountNumber"`
+		EventName			string					`json:"eventName"`
+		SessionName			string					`json:"sessioName"`
+		SessionTime			string					`json:"sessionTime"`
+		Others				[]OtherRegisResponse	`json:"otherBooking,omitempty"`
+	}
+	OtherRegisResponse struct {
+		Email				string					`json:"email"`
+		Name				string					`json:"name"`
+		BookingCode			string					`json:"bookingCode"`
+		Status				string					`json:"status"`
+	}
+)

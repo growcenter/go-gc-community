@@ -43,6 +43,7 @@ type (
 		Time				string		`json:"eventSessionTime"`
 		MaxSeating			int			`json:"eventSessionMaxSeating"`
 		Status				string		`json:"eventSessionStatus"`
+		IsUserValid			bool		`json:"isUserValid"`
 		OpenRegistration	time.Time	`json:"openRegistration"`
 		ClosedRegistration	time.Time	`json:"closedRegistration"`
 	}

@@ -16,7 +16,11 @@ func (h *V1Handler) eventRoutes(api *gin.RouterGroup) {
 	{
 		event.GET("/list", h.List)
 		event.GET("/:id/session", h.SessionList)
-		event.POST("/register", h.Register)
+		register := event.Group("/registration")
+		{
+			register.POST("/", h.Register)
+			register.GET("/view", h.View)
+		}
 	}
 }
 
@@ -30,15 +34,20 @@ func (h *V1Handler) eventRoutes(api *gin.RouterGroup) {
 // @Failure 400 {object} response.Response "There is something wrong with how user input the data"
 // @Router api/v1.0/user/callback [get] 
 func (eh *V1Handler) List(ctx *gin.Context) {
-	event, time, err := eh.usecase.Event.Events()
+	accountNumber, ok := ctx.Get("accountNumber")
+	if !ok {
+		response.Error(ctx.Writer, http.StatusConflict, "01", "01", errors.DATA_INVALID.Error)
+	}
+	
+	event, time, isValid, err := eh.usecase.Event.Events(accountNumber.(string))
 	if err != nil {
 		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "01", err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "02", err)
 		return
 	}
 
 	count := len(event)
-
+	
 	list := make([]models.EventResponseDetail, len(event))
 	for i, p := range event {
 		list[i] = models.EventResponseDetail{
@@ -46,6 +55,7 @@ func (eh *V1Handler) List(ctx *gin.Context) {
 			EventName: p.Name,
 			EventDescription: p.Description,
 			EventCode: p.Code,
+			IsUserValid: isValid,
 			OpenRegistration: p.OpenRegistration,
 			ClosedRegistration: p.ClosedRegistration,
 			Status: p.Status,
@@ -72,11 +82,15 @@ func (eh *V1Handler) List(ctx *gin.Context) {
 // @Router api/v1.0/event/:id/list [get]
 func (eh *V1Handler) SessionList(ctx *gin.Context) {
 	eventId := ctx.Param("id")
+	accountNumber, ok := ctx.Get("accountNumber")
+	if !ok {
+		response.Error(ctx.Writer, http.StatusConflict, "01", "03", errors.DATA_INVALID.Error)
+	}
 
-	session, event, time, err := eh.usecase.Event.Sessions(eventId)
+	session, event, time, isValid, err := eh.usecase.Event.Sessions(eventId, accountNumber.(string))
 	if err != nil {
 		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "02", err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "04", err)
 		return
 	}
 
@@ -92,6 +106,7 @@ func (eh *V1Handler) SessionList(ctx *gin.Context) {
 			Time: p.Time,
 			MaxSeating: p.MaxSeating,
 			Status: p.Status,
+			IsUserValid: isValid,
 			OpenRegistration: p.OpenRegistration,
 			ClosedRegistration: p.ClosedRegistration,
 		}
@@ -124,21 +139,21 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "03", errors.DATA_INVALID.Error)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "05", errors.DATA_INVALID.Error)
 		return
 	}
 
 	main, second, isValid, count, err := eh.usecase.Event.Register(&request)
 	if err != nil {
 		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "04", err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "06", err)
 		return
 	}
 
 	event, err := eh.usecase.Event.Event(request.EventID)
 	if err != nil {
 		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "05", err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "07", err)
 		return
 	}
 
@@ -165,4 +180,80 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 		MainBookingCode: main.Code,
 		Others: list,
 	})
+}
+
+// @Summary View Registration
+// @Tags registration-view
+// @Description This is the endpoint retrieve event list
+// @ModuleID Event
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} models.ViewRegistrationResponse "Response indicates that the request succeeded and user is logged in"
+// @Failure 400 {object} response.Response "There is something wrong with how user input the data"
+// @Router api/v1.0/event/:id/list [get]
+func (eh *V1Handler) View(ctx *gin.Context) {
+	accountNumber, ok := ctx.Get("accountNumber")
+	if !ok {
+		response.Error(ctx.Writer, http.StatusConflict, "01", "08", errors.DATA_INVALID.Error)
+	}
+
+	main, others, err := eh.usecase.Event.View(accountNumber.(string))
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "09", err)
+		return
+	}
+
+	event, err := eh.usecase.Event.Event(main.EventsId)
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "10", err)
+		return
+	}
+
+	session, err := eh.usecase.Event.Session(main.SessionsId) 
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "11", err)
+		return
+	}
+
+	list := make([]models.OtherRegisResponse, len(others))
+	for i, p := range others {
+		list[i] = models.OtherRegisResponse{
+			Email: p.Email,
+			Name: p.Name,
+			BookingCode: p.Code,
+			Status: p.Status,
+		}
+	}
+
+	if len(others) > 0 {
+		response.Success(ctx.Writer, http.StatusOK, models.ViewRegistrationResponse{
+			ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+			ResponseMessage: response.SUCCESS_DEFAULT,
+			MainEmail: main.Email,
+			MainName: main.Name,
+			MainStatus: main.Status,
+			MainAccountNumber: main.AccountNumber,
+			EventName: event.Name,
+			SessionName: session.Name,
+			SessionTime: session.Time,
+			Others: list,
+		})
+		return
+	}
+
+	response.Success(ctx.Writer, http.StatusOK, models.ViewRegistrationResponse{
+		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+		ResponseMessage: response.SUCCESS_DEFAULT,
+		MainEmail: main.Email,
+		MainName: main.Name,
+		MainStatus: main.Status,
+		MainAccountNumber: main.AccountNumber,
+		EventName: event.Name,
+		SessionName: session.Name,
+		SessionTime: session.Time,
+	})
+	
 }

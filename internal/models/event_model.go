@@ -31,6 +31,7 @@ type (
 		EventName			string		`json:"eventName"`
 		EventDescription	string		`json:"eventDescription"`
 		EventCode			string		`json:"eventCode"`
+		IsUserValid			bool		`json:"isUserValid"`
 		OpenRegistration	time.Time	`json:"openRegistration"`
 		ClosedRegistration	time.Time	`json:"closedRegistration"`
 		Status				string		`json:"eventStatus"`
