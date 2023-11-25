@@ -14,6 +14,7 @@ type Registrations struct {
 	SessionsId			int				`json:"sessions_id"`
 	Status				string			`json:"status"`
 	BookedBy			string			`json:"booked_by"`
+	UpdatedBy			string			`json:"updated_by"`
 	AccountNumber		string			`json:"account_number"`
 	CreatedAt			time.Time		`json:"created_at"`
 	UpdatedAt			time.Time		`json:"updated_at"`
@@ -24,12 +25,12 @@ type (
 	RegistrationRequest struct {
 		EventID				int						`json:"eventId" validate:"required"`
 		SessionID			int						`json:"eventSessionId" validate:"required"`
-		MainEmail			string					`json:"mainEmail" validate:"required"`
+		MainEmail			string					`json:"mainEmail" validate:"required, email"`
 		MainName			string					`json:"mainName" validate:"required"`
 		Others				[]OtherBookingRequest	`json:"otherBooking"`
 	}
 	OtherBookingRequest struct {
-		Email				string					`json:"email"`
+		Email				string					`json:"email" validate:"email"`
 		Name				string					`json:"name"`
 	}
 	RegistrationResponse struct {
@@ -71,5 +72,12 @@ type (
 		Name				string					`json:"name"`
 		BookingCode			string					`json:"bookingCode"`
 		Status				string					`json:"status"`
+	}
+)
+
+type (
+	CancelRegistrationRequest struct {
+		Email			string						`json:"email" validate:"required, email"`
+		Code				string					`json:"code"`
 	}
 )

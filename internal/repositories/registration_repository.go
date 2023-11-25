@@ -12,6 +12,7 @@ type Registration interface {
 	BatchCreate(reg []*models.Registrations) ([]*models.Registrations, error)
 	Find(kind string, content interface{}) (*models.Registrations, error)
 	FindBatchExclude(kind string, content interface{}, kinds string, contents interface{}) ([]*models.Registrations, error)
+	Update(reg *models.Registrations) (*models.Registrations, error)
 }
 
 type registrationRepository struct {
@@ -61,4 +62,13 @@ func (rr *registrationRepository) FindBatchExclude(kind string, content interfac
 	}
 
 	return reg, nil
+}
+
+func (rr *registrationRepository) Update(reg *models.Registrations) (*models.Registrations, error) {
+	err := rr.db.Save(&reg).Error
+    if err != nil {
+        return reg, err
+    }
+
+    return reg, nil
 }

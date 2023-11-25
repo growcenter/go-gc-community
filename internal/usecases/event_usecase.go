@@ -18,6 +18,7 @@ type Event interface {
 	Sessions(id string, accountNumber string) ([]*models.Sessions, *models.Events, time.Time, bool, error)
 	Register(request *models.RegistrationRequest) (*models.Registrations, []*models.Registrations, bool, error)
 	View(accountNumber string) (*models.Registrations, []*models.Registrations, error)
+	Cancel(request *models.CancelRegistrationRequest) (*models.Registrations, error)
 }
 
 type eventUsecase struct {
@@ -70,9 +71,12 @@ func (eu *eventUsecase) Events(accountNumber string) ([]*models.Events, time.Tim
 	if err != nil {
 		return nil, time.Now(), false, err
 	}
-
-	if isRegistered.ID != 0 {
+	
+	/*if isRegistered.ID != 0 {
 		return event, time.Now(), false, nil
+	}*/
+	if isRegistered.Status == "01" || isRegistered.Status == "00" {
+		return nil, time.Now(), false, err
 	}
 
 	return event, currentTime, true, nil
@@ -127,8 +131,11 @@ func (eu *eventUsecase) Sessions(id string, accountNumber string) ([]*models.Ses
 		return nil, event, currentTime, false, err
 	}
 
-	
-	if isRegistered.ID != 0 {
+	/*if isRegistered.ID != 0 {
+		return session, event, currentTime, false, nil
+	}*/
+
+	if isRegistered.Status == "01" || isRegistered.Status == "00" {
 		return session, event, currentTime, false, nil
 	}
 
@@ -294,4 +301,49 @@ func (eu *eventUsecase) View(accountNumber string) (*models.Registrations, []*mo
 	}
 
 	return main, others, nil
+}
+
+func (eu *eventUsecase) Cancel(accountNumber string, request *models.CancelRegistrationRequest) (*models.Registrations, error) {
+	user, err := eu.ur.Find("account_number", accountNumber)
+	if err != nil {
+		return nil, nil
+	}
+	
+	registration, err := eu.rr.Find("code", request.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := eu.sr.Find("id", registration.SessionsId)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ToLower(user.Email) != strings.ToLower(request.Email) {
+		return nil, errors.New("you are not the one who booked this registration")
+	}
+
+	if strings.ToLower(user.Email) != strings.ToLower(registration.BookedBy) {
+		return nil, errors.New("you are not the one who booked this registration")
+	}
+
+	registration.UpdatedBy = user.Email
+	registration.Status = "02"
+
+	update, err := eu.rr.Update(registration)
+	if err != nil {
+		return nil, err
+	}
+
+	session.AvailableSeats += 1
+	session.BookedSeats -= 1
+	session.UnscannedSeats -= 1
+	session.TotalRegistration -= 1
+
+	_, err = eu.sr.Update(session)
+	if err != nil {
+		return nil, err
+	}
+
+	return update, nil
 }

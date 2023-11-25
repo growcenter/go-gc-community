@@ -16,10 +16,11 @@ func (h *V1Handler) eventRoutes(api *gin.RouterGroup) {
 	{
 		event.GET("/list", h.List)
 		event.GET("/:id/session", h.SessionList)
-		register := event.Group("/registration")
+		register := event.Group("/register")
 		{
-			register.POST("/", h.Register)
+			register.POST("", h.Register)
 			register.GET("/view", h.View)
+			register.POST("/cancel", h.Cancel)
 		}
 	}
 }
@@ -256,4 +257,28 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 		SessionTime: session.Time,
 	})
 	
+}
+
+func (eh *V1Handler) Cancel(ctx *gin.Context) {
+	accountNumber, ok := ctx.Get("accountNumber")
+	if !ok {
+		response.Error(ctx.Writer, http.StatusConflict, "01", "12", errors.UNAUTHORIZED.Error)
+	}
+
+	var request models.CancelRegistrationRequest
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "12", errors.DATA_INVALID.Error)
+		return
+	}
+
+	_, err = eh.usecase.Event.Cancel(accountNumber.(string), &request)
+	if err != nil {
+		logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "13", err)
+		return
+	}
+
+	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT)
 }
