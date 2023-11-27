@@ -77,7 +77,7 @@ type (
 
 type (
 	CancelRegistrationRequest struct {
-		Email			string						`json:"email" validate:"required, email"`
+		Email				string					`json:"email" validate:"required, email"`
 		Code				string					`json:"code"`
 	}
 )

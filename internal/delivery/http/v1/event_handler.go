@@ -5,7 +5,6 @@ import (
 	"go-gc-community/internal/models"
 	"go-gc-community/internal/response"
 	"go-gc-community/pkg/errors"
-	"go-gc-community/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,7 @@ import (
 func (h *V1Handler) eventRoutes(api *gin.RouterGroup) {
 	event := api.Group("/event", h.Authorize)
 	{
-		event.GET("/list", h.List)
+		event.GET("/list", h.EventList)
 		event.GET("/:id/session", h.SessionList)
 		register := event.Group("/register")
 		{
@@ -34,16 +33,16 @@ func (h *V1Handler) eventRoutes(api *gin.RouterGroup) {
 // @Success 200 {object} models.GetEventResponse "Response indicates that the request succeeded and user is logged in"
 // @Failure 400 {object} response.Response "There is something wrong with how user input the data"
 // @Router api/v1.0/user/callback [get] 
-func (eh *V1Handler) List(ctx *gin.Context) {
+func (eh *V1Handler) EventList(ctx *gin.Context) {
 	accountNumber, ok := ctx.Get("accountNumber")
 	if !ok {
-		response.Error(ctx.Writer, http.StatusConflict, "01", "01", errors.DATA_INVALID.Error)
+		response.Error(ctx.Writer, http.StatusConflict, "01", "01", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 	}
 	
 	event, time, isValid, err := eh.usecase.Event.Events(accountNumber.(string))
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "02", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "02", err, ctx.Request.URL.Path)
 		return
 	}
 
@@ -63,7 +62,7 @@ func (eh *V1Handler) List(ctx *gin.Context) {
 		}
 	}
 
-	response.Success(ctx.Writer, http.StatusOK, models.GetEventResponse{
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.GetEventResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
 		EventCount: count,
@@ -85,13 +84,13 @@ func (eh *V1Handler) SessionList(ctx *gin.Context) {
 	eventId := ctx.Param("id")
 	accountNumber, ok := ctx.Get("accountNumber")
 	if !ok {
-		response.Error(ctx.Writer, http.StatusConflict, "01", "03", errors.DATA_INVALID.Error)
+		response.Error(ctx.Writer, http.StatusConflict, "01", "03", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 	}
 
 	session, event, time, isValid, err := eh.usecase.Event.Sessions(eventId, accountNumber.(string))
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "04", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "04", err, ctx.Request.URL.Path)
 		return
 	}
 
@@ -113,7 +112,7 @@ func (eh *V1Handler) SessionList(ctx *gin.Context) {
 		}
 	}
 
-	response.Success(ctx.Writer, http.StatusOK, models.GetSessionResponse{
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.GetSessionResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
 		EventName: event.Name,
@@ -139,22 +138,22 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "05", errors.DATA_INVALID.Error)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "05", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 		return
 	}
 
 	main, second, isValid, count, err := eh.usecase.Event.Register(&request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "06", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "06", err, ctx.Request.URL.Path)
 		return
 	}
 
 	event, err := eh.usecase.Event.Event(request.EventID)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "07", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "07", err, ctx.Request.URL.Path)
 		return
 	}
 
@@ -167,7 +166,7 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 		}
 	}
 
-	response.Success(ctx.Writer, http.StatusCreated, models.RegistrationResponse{
+	response.Success(ctx.Writer, http.StatusCreated, ctx.Request.URL.Path, models.RegistrationResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
 		EventCode: event.Code,
@@ -195,27 +194,27 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 func (eh *V1Handler) View(ctx *gin.Context) {
 	accountNumber, ok := ctx.Get("accountNumber")
 	if !ok {
-		response.Error(ctx.Writer, http.StatusConflict, "01", "08", errors.DATA_INVALID.Error)
+		response.Error(ctx.Writer, http.StatusConflict, "01", "08", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 	}
 
 	main, others, err := eh.usecase.Event.View(accountNumber.(string))
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "09", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "09", err, ctx.Request.URL.Path)
 		return
 	}
 
 	event, err := eh.usecase.Event.Event(main.EventsId)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "10", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "10", err, ctx.Request.URL.Path)
 		return
 	}
 
 	session, err := eh.usecase.Event.Session(main.SessionsId) 
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "11", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "11", err, ctx.Request.URL.Path)
 		return
 	}
 
@@ -230,7 +229,7 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 	}
 
 	if len(others) > 0 {
-		response.Success(ctx.Writer, http.StatusOK, models.ViewRegistrationResponse{
+		response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.ViewRegistrationResponse{
 			ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 			ResponseMessage: response.SUCCESS_DEFAULT,
 			MainEmail: main.Email,
@@ -245,7 +244,7 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 		return
 	}
 
-	response.Success(ctx.Writer, http.StatusOK, models.ViewRegistrationResponse{
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.ViewRegistrationResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
 		MainEmail: main.Email,
@@ -262,23 +261,23 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 func (eh *V1Handler) Cancel(ctx *gin.Context) {
 	accountNumber, ok := ctx.Get("accountNumber")
 	if !ok {
-		response.Error(ctx.Writer, http.StatusConflict, "01", "12", errors.UNAUTHORIZED.Error)
+		response.Error(ctx.Writer, http.StatusConflict, "01", "12", errors.UNAUTHORIZED.Error, ctx.Request.URL.Path)
 	}
 
 	var request models.CancelRegistrationRequest
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "12", errors.DATA_INVALID.Error)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "01", "12", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 		return
 	}
 
 	_, err = eh.usecase.Event.Cancel(accountNumber.(string), &request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "01", "13", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "01", "13", err, ctx.Request.URL.Path)
 		return
 	}
 
-	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT)
+	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT, ctx.Request.URL.Path)
 }

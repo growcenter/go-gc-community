@@ -45,7 +45,7 @@ func (uu *userUsecase) Account(state string, code string) (*models.User, string,
 		input := models.User{
 			Name: fetched.Name,
 			Email: strings.ToLower(fetched.Email),
-			RoleId: "1",
+			RoleId: "01",
 			State: "1",
 			IsVolunteer: false,
 		}

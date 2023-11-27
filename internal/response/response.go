@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	custom "go-gc-community/pkg/errors"
+	"go-gc-community/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type Response struct {
@@ -20,10 +22,12 @@ const (
 	SUCCESS_DEFAULT = "Response has been successfully proceed."
 )
 
-func Error(w gin.ResponseWriter,statusCode int, featureType string, errorNumber string, err error) {
+func Error(w gin.ResponseWriter, statusCode int, featureType string, errorNumber string, err error, path string) {
+	code := fmt.Sprintf("%d%s%s", statusCode, featureType, errorNumber)
+	msg := err.Error()
 	bt, err := json.Marshal(Response{
-		ResponseCode: fmt.Sprintf("%d%s%s", statusCode, featureType, errorNumber),
-		ResponseMessage: err.Error(),
+		ResponseCode: code,
+		ResponseMessage: msg,
 	})
 	if err != nil {
 		bt, _ = json.Marshal(Response{
@@ -40,10 +44,12 @@ func Error(w gin.ResponseWriter,statusCode int, featureType string, errorNumber 
 	w.Header().Set(CONTENT_TYPE, APPLICATION_JSON)
 	w.WriteHeader(statusCode)
 	w.Write(bt)
+
+	logger.Logger.Error(fmt.Sprintf("Error: %s", msg), zap.String("path", path), zap.Error(err), zap.String("code", code))
 	return
 }
 
-func Default(w gin.ResponseWriter,statusCode int, featureType string, successMessage string) {
+func Default(w gin.ResponseWriter,statusCode int, featureType string, successMessage string, path string) {
 	bt, err := json.Marshal(Response{
 		ResponseCode: fmt.Sprintf("%d%s00", statusCode, featureType),
 		ResponseMessage: successMessage,
@@ -63,10 +69,12 @@ func Default(w gin.ResponseWriter,statusCode int, featureType string, successMes
 	w.Header().Set(CONTENT_TYPE, APPLICATION_JSON)
 	w.WriteHeader(statusCode)
 	w.Write(bt)
+
+	logger.Logger.Info(successMessage, zap.String("path", path))
 	return
 }
 
-func Success(w gin.ResponseWriter, statusCode int, response interface{}) {
+func Success(w gin.ResponseWriter, statusCode int, path string, response interface{}) {
 	bt, err := json.Marshal(response)
 	if err != nil {
 		bt, _ = json.Marshal(Response{
@@ -83,5 +91,7 @@ func Success(w gin.ResponseWriter, statusCode int, response interface{}) {
 	w.Header().Set(CONTENT_TYPE, APPLICATION_JSON)
 	w.WriteHeader(statusCode)
 	w.Write(bt)
+	
+	logger.Logger.Info(SUCCESS_DEFAULT, zap.String("path", path))
 	return
 }

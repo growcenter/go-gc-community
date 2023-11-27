@@ -13,6 +13,7 @@ type Registration interface {
 	Find(kind string, content interface{}) (*models.Registrations, error)
 	FindBatchExclude(kind string, content interface{}, kinds string, contents interface{}) ([]*models.Registrations, error)
 	Update(reg *models.Registrations) (*models.Registrations, error)
+	List(page, limit, sort, filter string) ([]*models.Registrations, error)
 }
 
 type registrationRepository struct {
@@ -71,4 +72,14 @@ func (rr *registrationRepository) Update(reg *models.Registrations) (*models.Reg
     }
 
     return reg, nil
+}
+
+func (rr *registrationRepository) List(page, limit, sort, filter string) ([]*models.Registrations, error) {
+	var reg []*models.Registrations
+	err := rr.db.Scopes(Paginate(page, limit), Sort(sort), TripleFilter("name LIKE ? OR email LIKE ? OR account_number LIKE ?", filter)).Find(&reg).Error
+	if err != nil {
+		return reg, err
+	}
+
+	return reg, nil
 }
