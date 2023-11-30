@@ -4,7 +4,6 @@ import (
 	"errors"
 	"go-gc-community/internal/response"
 	custom "go-gc-community/pkg/errors"
-	"go-gc-community/pkg/logger"
 	"net/http"
 	"strings"
 
@@ -64,14 +63,14 @@ func Token(ctx *gin.Context) string {
 func (h *V1Handler) Authorize(ctx *gin.Context) {
 	retrieved, err := h.Retrieve(ctx)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusUnauthorized, "00", "01", custom.UNAUTHORIZED.Error)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnauthorized, "00", "01", custom.UNAUTHORIZED.Error, ctx.Request.URL.Path)
 	}
 
 	content, err := h.Get(retrieved)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusUnauthorized, "00", "02", custom.UNAUTHORIZED.Error)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnauthorized, "00", "02", custom.UNAUTHORIZED.Error, ctx.Request.URL.Path)
 	}
 
 	ctx.Set("userId", content.UserId)

@@ -13,9 +13,12 @@ import (
 )
 
 type Event interface {
-	Events() ([]*models.Events, error)
-	Sessions(id int) ([]*models.Sessions, time.Time, error)
+	Event(id int) (*models.Events, error)
+	Events(accountNumber string) ([]*models.Events, time.Time, bool, error)
+	Sessions(id string, accountNumber string) ([]*models.Sessions, *models.Events, time.Time, bool, error)
 	Register(request *models.RegistrationRequest) (*models.Registrations, []*models.Registrations, bool, error)
+	View(accountNumber string) (*models.Registrations, []*models.Registrations, error)
+	Cancel(request *models.CancelRegistrationRequest) (*models.Registrations, error)
 }
 
 type eventUsecase struct {
@@ -38,61 +41,105 @@ func (eu *eventUsecase) Event(id int) (*models.Events, error) {
 	return event, nil
 }
 
-func (eu *eventUsecase) Events() ([]*models.Events, time.Time, error) {
+func (eu *eventUsecase) Events(accountNumber string) ([]*models.Events, time.Time, bool, error) {
 	currentTime := time.Now()
 	
 	openChanges := eu.er.UpdateFilter("open_registration < ?", currentTime, "status", "OPEN")
 	err := openChanges.Error
 	if err != nil {
-		return nil, time.Now(), err
+		return nil, time.Now(), false, err
 	}
 
 	closeChanges := eu.er.UpdateFilter("closed_registration < ?", currentTime, "status", "CLOSED")
 	err = closeChanges.Error
 	if err != nil {
-		return nil, time.Now(), err
+		return nil, time.Now(), false, err
 	}
 
 
 	event, err := eu.er.All()
 	if err != nil {
-		return nil, time.Now(), err
+		return nil, time.Now(), false, err
 	}
 
-	return event, currentTime, nil
+	user, err := eu.ur.Find("account_number", accountNumber)
+	if err != nil {
+		return nil, time.Now(), false, err
+	}
+
+	isRegistered, err := eu.rr.Find("booked_by", strings.ToLower(user.Email))
+	if err != nil {
+		return nil, time.Now(), false, err
+	}
+	
+	/*if isRegistered.ID != 0 {
+		return event, time.Now(), false, nil
+	}*/
+	if isRegistered.Status == "01" || isRegistered.Status == "00" {
+		return nil, time.Now(), false, err
+	}
+
+	return event, currentTime, true, nil
 }
 
-func (eu *eventUsecase) Sessions(id string) ([]*models.Sessions, *models.Events, time.Time, error) {
+func (eu *eventUsecase) Session(id int) (*models.Sessions, error) {
+	session, err := eu.sr.Find("id", id)
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
+func (eu *eventUsecase) Sessions(id string, accountNumber string) ([]*models.Sessions, *models.Events, time.Time, bool, error) {
 	var e *models.Events
 	currentTime := time.Now()
 	eventId, err := strconv.Atoi(id)
 	if err != nil {
-		return nil, e, currentTime, err
+		return nil, e, currentTime, false, err
 	}
 
 	openChanges := eu.sr.UpdateFilter("open_registration < ?", currentTime, "status", "OPEN")
 	err = openChanges.Error
 	if err != nil {
-		return nil, e, currentTime, err
+		return nil, e, currentTime, false, err
 	}
 
 	closeChanges := eu.sr.UpdateFilter("closed_registration < ?", currentTime, "status", "CLOSED")
 	err = closeChanges.Error
 	if err != nil {
-		return nil, e, currentTime, err
+		return nil, e, currentTime, false, err
 	}
 
 	event, err := eu.er.Find("id", eventId)
 	if err != nil {
-		return nil, event, currentTime, err
+		return nil, event, currentTime, false, err
 	}
 
 	session, err := eu.sr.AllWithFilter("events_id", eventId)
 	if err != nil {
-		return nil, event, currentTime, err
+		return nil, event, currentTime, false, err
 	}
 
-	return session, event, currentTime, err
+	user, err := eu.ur.Find("account_number", accountNumber)
+	if err != nil {
+		return nil, event, currentTime, false, err
+	}
+
+	isRegistered, err := eu.rr.Find("booked_by", strings.ToLower(user.Email))
+	if err != nil {
+		return nil, event, currentTime, false, err
+	}
+
+	/*if isRegistered.ID != 0 {
+		return session, event, currentTime, false, nil
+	}*/
+
+	if isRegistered.Status == "01" || isRegistered.Status == "00" {
+		return session, event, currentTime, false, nil
+	}
+
+	return session, event, currentTime, true, nil
 }
 
 func (eu *eventUsecase) Register(request *models.RegistrationRequest) (*models.Registrations, []*models.Registrations, bool, int, error) {
@@ -235,4 +282,68 @@ func (eu *eventUsecase) Register(request *models.RegistrationRequest) (*models.R
 	}
 
 	return main, others, true, count, nil
+}
+
+func (eu *eventUsecase) View(accountNumber string) (*models.Registrations, []*models.Registrations, error) {
+	/*user, err := eu.ur.Find("account_number", accountNumber)
+	if err != nil {
+		return nil, nil, err
+	}*/
+
+	main, err := eu.rr.Find("account_number", accountNumber)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	others, err := eu.rr.FindBatchExclude("booked_by", main.BookedBy, "email", main.Email)
+	if err != nil {
+		return main, others, nil
+	}
+
+	return main, others, nil
+}
+
+func (eu *eventUsecase) Cancel(accountNumber string, request *models.CancelRegistrationRequest) (*models.Registrations, error) {
+	user, err := eu.ur.Find("account_number", accountNumber)
+	if err != nil {
+		return nil, nil
+	}
+	
+	registration, err := eu.rr.Find("code", request.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := eu.sr.Find("id", registration.SessionsId)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ToLower(user.Email) != strings.ToLower(request.Email) {
+		return nil, errors.New("you are not the one who booked this registration")
+	}
+
+	if strings.ToLower(user.Email) != strings.ToLower(registration.BookedBy) {
+		return nil, errors.New("you are not the one who booked this registration")
+	}
+
+	registration.UpdatedBy = user.Email
+	registration.Status = "02"
+
+	update, err := eu.rr.Update(registration)
+	if err != nil {
+		return nil, err
+	}
+
+	session.AvailableSeats += 1
+	session.BookedSeats -= 1
+	session.UnscannedSeats -= 1
+	session.TotalRegistration -= 1
+
+	_, err = eu.sr.Update(session)
+	if err != nil {
+		return nil, err
+	}
+
+	return update, nil
 }

@@ -5,7 +5,6 @@ import (
 	"go-gc-community/internal/models"
 	"go-gc-community/internal/response"
 	"go-gc-community/pkg/errors"
-	"go-gc-community/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -58,13 +57,20 @@ func (uh *V1Handler) Callback(ctx *gin.Context) {
 	state := ctx.Query("state")
 	user, appToken, statusCode, err := uh.usecase.User.Account(state, code)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "01", err)
+		//logger.Error(err.Error())
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "01", err, ctx.Request.URL.Path)
 		return
 	}
 
 	if statusCode == 201 {
-		ctx.JSON(http.StatusCreated, models.UserLoginResponse{
+		/*ctx.JSON(http.StatusCreated, models.UserLoginResponse{
+			ResponseCode: fmt.Sprintf("%d%s%s", http.StatusCreated, "00", "00"),
+			ResponseMessage: "Response has been successfully proceeded.",
+			AccountNumber: user.AccountNumber,
+			UserID: user.ID,
+			Token: appToken,
+		})*/
+		response.Success(ctx.Writer, http.StatusCreated, ctx.Request.URL.Path, models.UserLoginResponse{
 			ResponseCode: fmt.Sprintf("%d%s%s", http.StatusCreated, "00", "00"),
 			ResponseMessage: "Response has been successfully proceeded.",
 			AccountNumber: user.AccountNumber,
@@ -75,13 +81,21 @@ func (uh *V1Handler) Callback(ctx *gin.Context) {
 	}
 
 
-	ctx.JSON(http.StatusOK, models.UserLoginResponse{
+	/*ctx.JSON(http.StatusOK, models.UserLoginResponse{
+		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+		ResponseMessage: "Response has been successfully proceeded.",
+		AccountNumber: user.AccountNumber,
+		UserID: user.ID,
+		Token: appToken,
+	})*/
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.UserLoginResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: "Response has been successfully proceeded.",
 		AccountNumber: user.AccountNumber,
 		UserID: user.ID,
 		Token: appToken,
 	})
+	return
 }
 
 // @Summary Inquire User
@@ -99,17 +113,17 @@ func (uh *V1Handler) Inquiry(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "02", errors.DATA_INVALID.Error)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "02", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 	}
 
 	userData, err := uh.usecase.User.Inquire(&request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "00", "03", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "00", "03", err, ctx.Request.URL.Path)
 	}
 
-	response.Success(ctx.Writer, http.StatusOK, models.InquiryUserResponse{
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.InquiryUserResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
 		AccountNumber: userData.AccountNumber,
@@ -123,7 +137,7 @@ func (uh *V1Handler) Inquiry(ctx *gin.Context) {
 func (uh *V1Handler) Inquire(ctx *gin.Context) {
 	accountNumber, ok := ctx.Get("accountNumber")
 	if !ok {
-		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "04", errors.DATA_INVALID.Error)
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "04", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
 	}
 	
 	var request models.InquiryUserRequest
@@ -131,11 +145,11 @@ func (uh *V1Handler) Inquire(ctx *gin.Context) {
 
 	userData, err := uh.usecase.User.Inquire(&request)
 	if err != nil {
-		logger.Error(err)
-		response.Error(ctx.Writer, http.StatusBadRequest, "00", "05", err)
+		//logger.Error(err)
+		response.Error(ctx.Writer, http.StatusBadRequest, "00", "05", err, ctx.Request.URL.Path)
 	}
 
-	response.Success(ctx.Writer, http.StatusOK, models.InquiryUserResponse{
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.InquiryUserResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: "Response has been successfully proceeded.",
 		AccountNumber: userData.AccountNumber,

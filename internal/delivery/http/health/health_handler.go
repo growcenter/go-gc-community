@@ -4,7 +4,6 @@ import (
 	"errors"
 	"go-gc-community/internal/response"
 	"go-gc-community/internal/usecases"
-	"go-gc-community/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,10 +38,10 @@ func (hh *HealthHandler) Init(api *gin.RouterGroup) {
 func (h *HealthHandler) Check(ctx *gin.Context) {
 	err := h.usecase.Health.Check()
 	if err != nil {
-		logger.Error("failed connect to the database")
-		response.Error(ctx.Writer, http.StatusInternalServerError, "00", "00", errors.New("failed Connect to the Database"))
+		//logger.Error("failed connect to the database")
+		response.Error(ctx.Writer, http.StatusInternalServerError, "00", "00", errors.New("failed Connect to the Database"), ctx.Request.URL.Path)
 		return
 	}
 
-	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT)
+	response.Default(ctx.Writer, http.StatusOK, "00", response.SUCCESS_DEFAULT, ctx.Request.URL.Path)
 }

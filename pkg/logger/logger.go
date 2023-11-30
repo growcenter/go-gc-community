@@ -1,42 +1,43 @@
 package logger
 
-import "github.com/sirupsen/logrus"
+import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
 
-type Logger interface {
-	Debug(msg string, params map[string]interface{})
-	Info(msg string, params map[string]interface{})
-	Warn(msg string, params map[string]interface{})
-	Error(msg string, params map[string]interface{})
-}
+var Logger *zap.Logger
 
-func Debug(msg ...interface{}) {
-	logrus.Debug(msg...)
-}
+func Init() {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig= zapcore.EncoderConfig{
+		TimeKey:       "time",
+        LevelKey:      "level",
+        NameKey:       "logger",
+        CallerKey:     "caller",
+        MessageKey:    "message",
+        StacktraceKey: "stacktrace",
+        LineEnding:    zapcore.DefaultLineEnding,
+		EncodeLevel: zapcore.CapitalColorLevelEncoder,
+		EncodeTime: zapcore.ISO8601TimeEncoder,
+		EncodeCaller: zapcore.FullCallerEncoder,
+		EncodeName: zapcore.FullNameEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
 
-func Debugf(format string, args ...interface{}) {
-	logrus.Debugf(format, args...)
-}
+	}
+	/*config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
-func Info(msg ...interface{}) {
-	logrus.Info(msg...)
-}
+	config.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
+	config.EncoderConfig.EncodeName = zapcore.FullNameEncoder
+	config.EncoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder*/
 
-func Infof(format string, args ...interface{}) {
-	logrus.Infof(format, args...)
-}
+	logger, err := config.Build()
+	if err != nil {
+		panic("failed to initialize logger")
+	}
 
-func Warn(msg ...interface{}) {
-	logrus.Warn(msg...)
-}
-
-func Warnf(format string, args ...interface{}) {
-	logrus.Warnf(format, args...)
-}
-
-func Error(msg ...interface{}) {
-	logrus.Error(msg...)
-}
-
-func Errorf(format string, args ...interface{}) {
-	logrus.Errorf(format, args...)
+	Logger = logger
 }

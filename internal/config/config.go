@@ -1,6 +1,7 @@
 package config
 
 import (
+	"go-gc-community/pkg/logger"
 	"time"
 
 	"github.com/spf13/viper"
@@ -68,6 +69,8 @@ func Init() (*Config, error) {
 	if err := unmarshal(&cfg); err != nil {
 		return nil, err
 	}
+
+	logger.Init()
 
 	setEnvironment(&cfg)
 
