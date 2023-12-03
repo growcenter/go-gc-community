@@ -55,7 +55,7 @@ func (uu *userUsecase) Account(state string, code string) (*models.User, string,
 			return nil, "", 0, err
 		}
 
-		input.AccountNumber = fmt.Sprintf("1%06d", user.ID)
+		input.AccountNumber = fmt.Sprintf("1%09d", user.ID)
 		update, err := uu.ur.Update(&input)
 		if err != nil {
 			return &input, "", 0, err

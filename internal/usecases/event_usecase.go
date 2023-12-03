@@ -169,6 +169,10 @@ func (eu *eventUsecase) Register(request *models.RegistrationRequest) (*models.R
 	if err != nil {
 		return nil, nil, false, 0, err
 	}
+	
+	if session.EventsId != event.ID {
+		return nil, nil, false, 0, errors.New("Event id is not valid")
+	}
 
 	// Validation if Session Status is already closed
 	if session.Status == "CLOSED" {
