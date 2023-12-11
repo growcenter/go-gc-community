@@ -1,0 +1,20 @@
+CREATE TABLE sessions (
+  id int unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  events_id int NOT NULL,
+  available_seats int NOT NULL,
+  booked_seats int NOT NULL,
+  scanned_seats int NOT NULL,
+  unscanned_seats int NOT NULL,
+  total_registration int NOT NULL,
+  description varchar(255) DEFAULT NULL,
+  time varchar(255) DEFAULT NULL,
+  open_registration datetime NOT NULL,
+  closed_registration datetime NOT NULL,
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  deleted_at datetime DEFAULT NULL,
+  status varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  max_seating int NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
