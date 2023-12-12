@@ -15,6 +15,7 @@ type User struct {
 	CommunityName		string			`json:"community_name"`
 	Email				string			`json:"email"`
 	PhoneNumber			string			`json:"phone_number"`
+	Password			string			`json:"password"`
 	Location			string			`json:"location"`
 	Address				string			`json:"address"`
 	Age					string			`json:"age"`
@@ -35,6 +36,42 @@ type (
 	UserLoginResponse struct {
 		ResponseCode	string		`json:"responseCode"`
 		ResponseMessage	string		`json:"responseMessage"`
+		AccountNumber	string		`json:"accountNumber"`
+		Token			string		`json:"token"`
+		UserID			int			`json:"userID"`
+	}
+)
+
+type (
+	UserManualRegisterRequest struct {
+		Name			string		`json:"name" validate:"required"`
+		Identifier		string		`json:"identifier" validate:"required"`
+		Password		string		`json:"password" validate:"required"`
+	}
+	UserManualRegisterResponse struct {
+		ResponseCode	string		`json:"responseCode"`
+		ResponseMessage	string		`json:"responseMessage"`
+		Name			string		`json:"name"`
+		Email			string		`json:"email,omitempty"`
+		PhoneNumber		string		`json:"phoneNumber,omitempty"`
+		Password		string		`json:"password"`
+		AccountNumber	string		`json:"accountNumber"`
+		Token			string		`json:"token"`
+		UserID			int			`json:"userID"`
+	}
+)
+
+type (
+	UserManualLoginRequest struct {
+		Identifier		string		`json:"identifier" validate:"required"`
+		Password		string		`json:"password" validate:"required"`
+	}
+	UserManualLoginResponse struct {
+		ResponseCode	string		`json:"responseCode"`
+		ResponseMessage	string		`json:"responseMessage"`
+		Name			string		`json:"name"`
+		Email			string		`json:"email,omitempty"`
+		PhoneNumber		string		`json:"phoneNumber,omitempty"`
 		AccountNumber	string		`json:"accountNumber"`
 		Token			string		`json:"token"`
 		UserID			int			`json:"userID"`

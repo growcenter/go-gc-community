@@ -13,13 +13,13 @@ import (
 func (h *V1Handler) userRoutes(api *gin.RouterGroup) {
 	user := api.Group("/user")
 	{
-		/*google := user.Group("/google")
+		google := user.Group("/google")
 		{
 			google.GET("/login", h.Login)
-			google.GET("callback", h.Callback)
-		}*/
-		user.GET("/login", h.Login)
-		user.GET("/callback", h.Callback)
+			google.GET("/callback", h.Callback)
+		}
+		user.POST("/login", h.ManualLogin)
+		user.POST("/register", h.ManualRegister)
 
 		authorized := user.Group("/", h.Authorize)
 		{
@@ -157,5 +157,58 @@ func (uh *V1Handler) Inquire(ctx *gin.Context) {
 		State: userData.State,
 		Role: userData.RoleId,
 		Email: userData.Email,
+	})
+}
+
+func (uh *V1Handler) ManualRegister(ctx *gin.Context) {
+	var request models.UserManualRegisterRequest
+	
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "06", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
+	}
+
+	registered, appToken, err := uh.usecase.User.ManualRegister(&request)
+	if err != nil {
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "07", err, ctx.Request.URL.Path)
+		return
+	}
+
+	response.Success(ctx.Writer, http.StatusCreated, ctx.Request.URL.Path, models.UserManualRegisterResponse{
+		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+		ResponseMessage: "Request has been successfully created.",
+		Name: registered.Name,
+		Email: registered.Email,
+		PhoneNumber: registered.PhoneNumber,
+		Password: registered.Password,
+		AccountNumber: registered.AccountNumber,
+		Token: appToken,
+		UserID: registered.ID,
+	})
+}
+
+func (uh *V1Handler) ManualLogin(ctx *gin.Context) {
+	var request models.UserManualLoginRequest
+	
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "08", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
+	}
+
+	logged, appToken, err := uh.usecase.User.ManualLogin(&request)
+	if err != nil {
+		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "09", err, ctx.Request.URL.Path)
+		return
+	}
+
+	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.UserManualLoginResponse{
+		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
+		ResponseMessage: "Response has been successfully proceeded.",
+		Name: logged.Name,
+		Email: logged.Email,
+		PhoneNumber: logged.PhoneNumber,
+		AccountNumber: logged.AccountNumber,
+		Token: appToken,
+		UserID: logged.ID,
 	})
 }

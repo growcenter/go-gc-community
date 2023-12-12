@@ -13,6 +13,7 @@ type User interface {
 	Find(kind string, content string) (*models.User, error)
 	Update(user *models.User) (*models.User, error)
 	First(kind string, content string) (*models.User, error)
+	FindMultipleExact(firstParam string, secondParam string, input string) (*models.User, error)
 }
 
 type userRepository struct {
@@ -62,6 +63,17 @@ func (ur *userRepository) First(kind string, content string) (*models.User, erro
 	}
 	
 	err := ur.db.First(&user, column, content).Error
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (ur *userRepository) FindMultipleExact(firstParam string, secondParam string, input string) (*models.User, error) {
+	var user *models.User
+	column := fmt.Sprintf("%s = ? OR %s = ?", firstParam, secondParam)
+	err := ur.db.Where(column, input, input).Find(&user).Error
 	if err != nil {
 		return user, err
 	}
