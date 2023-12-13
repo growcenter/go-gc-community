@@ -12,6 +12,7 @@ import (
 	"go-gc-community/pkg/authorization"
 	"go-gc-community/pkg/database/msql"
 	"go-gc-community/pkg/google"
+	"go-gc-community/pkg/hash"
 	"go-gc-community/pkg/logger"
 	"net/http"
 	"os"
@@ -50,11 +51,17 @@ func Run() {
 		logger.Logger.Error("Google Oauth error", zap.Error(err))
 	}
 
+	salt, err := hash.Salt()
+	if err != nil {
+		logger.Logger.Error("Generate salt error", zap.Error(err))
+	}
+
 	repository := repositories.NewRepositories(msql)
 	usecase := usecases.NewUsecases(usecases.Dependencies{
 		Repository: repository,
 		Authorization: authService,
 		Google: authGoogle,
+		Salt: salt,
 	})
 	handler := handler.NewHandler(usecase, authService)
 	server := server.NewServer(cfg, handler.Init(cfg))

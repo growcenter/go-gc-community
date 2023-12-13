@@ -11,6 +11,7 @@ type Dependencies struct {
 	Repository		*repositories.Repositories
 	Authorization	*authorization.Auth
 	Google			*google.Goog
+	Salt			[]byte
 }
 
 type Usecases struct {
@@ -22,7 +23,7 @@ type Usecases struct {
 
 func NewUsecases(dep Dependencies) *Usecases {
 	health := NewHealthUsecase(dep.Repository.Health)
-	user := NewUserUsecase(dep.Repository.User, dep.Authorization, *dep.Google)
+	user := NewUserUsecase(dep.Repository.User, dep.Authorization, *dep.Google, dep.Salt)
 	event := NewEventUsecase(dep.Repository.User, dep.Repository.Event, dep.Repository.Session, dep.Repository.Registration)
 	internal := NewInternalUsecase(dep.Repository.User, dep.Repository.Event, dep.Repository.Session, dep.Repository.Registration)
 

@@ -29,8 +29,8 @@ type User struct {
 
 type (
 	UserLoginRequest struct {
-		Name			string		`json:"name" validate:"required"`
-		Email			string		`json:"email" validate:"required, email"`
+		Name			string		`json:"name" binding:"required"`
+		Email			string		`json:"email" binding:"required"`
 	}
 
 	UserLoginResponse struct {
@@ -44,9 +44,9 @@ type (
 
 type (
 	UserManualRegisterRequest struct {
-		Name			string		`json:"name" validate:"required"`
-		Identifier		string		`json:"identifier" validate:"required"`
-		Password		string		`json:"password" validate:"required"`
+		Name			string		`json:"name" binding:"required"`
+		Identifier		string		`json:"identifier" binding:"required"`
+		Password		string		`json:"password" binding:"required"`
 	}
 	UserManualRegisterResponse struct {
 		ResponseCode	string		`json:"responseCode"`
@@ -63,8 +63,8 @@ type (
 
 type (
 	UserManualLoginRequest struct {
-		Identifier		string		`json:"identifier" validate:"required"`
-		Password		string		`json:"password" validate:"required"`
+		Identifier		string		`json:"identifier" binding:"required"`
+		Password		string		`json:"password" binding:"required"`
 	}
 	UserManualLoginResponse struct {
 		ResponseCode	string		`json:"responseCode"`
@@ -80,7 +80,7 @@ type (
 
 type (
 	InquiryUserRequest struct {
-		AccountNumber	string			`json:"accountNumber" validate:"required"`
+		AccountNumber	string			`json:"accountNumber" binding:"required"`
 		Additional		AdditionalInfo	`json:"additionalInfo"`
 	}
 	

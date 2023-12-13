@@ -12,6 +12,7 @@ type Registration interface {
 	BatchCreate(reg []*models.Registrations) ([]*models.Registrations, error)
 	Find(kind string, content interface{}) (*models.Registrations, error)
 	FindBatchExclude(kind string, content interface{}, kinds string, contents interface{}) ([]*models.Registrations, error)
+	FindMultipleExact(firstParam string, secondParam string, input string) (*models.Registrations, error)
 	Update(reg *models.Registrations) (*models.Registrations, error)
 	List(page, limit, sort, filter string) ([]*models.Registrations, error)
 }
@@ -58,6 +59,17 @@ func (rr *registrationRepository) FindBatchExclude(kind string, content interfac
 	column := fmt.Sprintf("%s = ?", kind)
 	columns := fmt.Sprintf("%s = ?", kinds)
 	err := rr.db.Where(column, content).Not(columns, contents).Find(&reg).Error
+	if err != nil {
+		return reg, err
+	}
+
+	return reg, nil
+}
+
+func (rr *registrationRepository) FindMultipleExact(firstParam string, secondParam string, input string) (*models.Registrations, error) {
+	var reg *models.Registrations
+	column := fmt.Sprintf("%s = ? OR %s = ?", firstParam, secondParam)
+	err := rr.db.Where(column, input, input).Find(&reg).Error
 	if err != nil {
 		return reg, err
 	}

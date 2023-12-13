@@ -24,10 +24,11 @@ type userUsecase struct {
 	ur repositories.User
 	a authorization.Authorization
 	g google.Goog
+	s []byte
 }
 
-func NewUserUsecase(ur repositories.User, a authorization.Authorization, g google.Goog) *userUsecase {
-	return &userUsecase{ur, a, g}
+func NewUserUsecase(ur repositories.User, a authorization.Authorization, g google.Goog, s []byte) *userUsecase {
+	return &userUsecase{ur, a, g, s}
 }
 
 func (uu *userUsecase) Redirect() (string) {
@@ -114,7 +115,8 @@ func (uu *userUsecase) ManualRegister(request *models.UserManualRegisterRequest)
 			return nil, "", errors.New("should input either valid email or phone number")	
 		}
 		
-		password, err := hash.Generate(request.Password)
+		salted := append([]byte(request.Password), uu.s...)
+		password, err := hash.Generate(salted)
 		if err != nil {
 			return nil, "", err
 		}
@@ -139,7 +141,12 @@ func (uu *userUsecase) ManualRegister(request *models.UserManualRegisterRequest)
 			return nil, "", err
 		}
 	
-		valid, err := uu.ur.First("email", update.Email)
+		/*valid, err := uu.ur.First("email", update.Email)
+		if err != nil {
+			return nil, "", err
+		}*/
+
+		valid, err := uu.ur.First("id", update.ID)
 		if err != nil {
 			return nil, "", err
 		}
@@ -152,7 +159,8 @@ func (uu *userUsecase) ManualRegister(request *models.UserManualRegisterRequest)
 		return valid, appToken, nil
 	}
 	
-	password, err := hash.Generate(request.Password)
+	salted := append([]byte(request.Password), uu.s...)
+	password, err := hash.Generate(salted)
 	if err != nil {
 		return nil, "", err
 	}
@@ -177,7 +185,12 @@ func (uu *userUsecase) ManualRegister(request *models.UserManualRegisterRequest)
 		return nil, "", err
 	}
 
-	valid, err := uu.ur.First("email", update.Email)
+	/*valid, err := uu.ur.First("email", update.Email)
+	if err != nil {
+		return nil, "", err
+	}*/
+
+	valid, err := uu.ur.First("id", update.ID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -195,12 +208,13 @@ func (uu *userUsecase) ManualLogin(request *models.UserManualLoginRequest) (*mod
 	if err != nil {
 		return nil, "", err
 	}
-
+	
 	if user.ID == 0 {
 		return nil, "", errors.New("user has not registered yet")
 	}
-
-	err = hash.Validate(user.Password, []byte(request.Password))
+	
+	salted := append([]byte(request.Password), uu.s...)
+	err = hash.Validate(user.Password, string(salted))
 	if err != nil {
 		return nil, "", errors.New("invalid password")
 	}

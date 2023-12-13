@@ -12,7 +12,7 @@ type User interface {
 	Create(user *models.User) (*models.User, error)
 	Find(kind string, content string) (*models.User, error)
 	Update(user *models.User) (*models.User, error)
-	First(kind string, content string) (*models.User, error)
+	First(kind string, content interface{}) (*models.User, error)
 	FindMultipleExact(firstParam string, secondParam string, input string) (*models.User, error)
 }
 
@@ -53,12 +53,12 @@ func (ur *userRepository) Update(user *models.User) (*models.User, error){
 	return user, nil
 }
 
-func (ur *userRepository) First(kind string, content string) (*models.User, error) {
+func (ur *userRepository) First(kind string, content interface{}) (*models.User, error) {
 	var user *models.User
 	column := fmt.Sprintf("%s = ?", kind)
 	
 	if kind == "email" {
-		lowerCase := strings.ToLower(content)
+		lowerCase := strings.ToLower(content.(string))
 		content = lowerCase
 	}
 	

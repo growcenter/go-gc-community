@@ -166,6 +166,7 @@ func (uh *V1Handler) ManualRegister(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		response.Error(ctx.Writer, http.StatusUnprocessableEntity, "00", "06", errors.DATA_INVALID.Error, ctx.Request.URL.Path)
+		return
 	}
 
 	registered, appToken, err := uh.usecase.User.ManualRegister(&request)
