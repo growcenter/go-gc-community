@@ -88,7 +88,7 @@ func (ih *V1Handler) RegistrationList(ctx *gin.Context) {
 	for i, p := range result {
 		list[i] = models.RegistrationListDetail{
 			Name: p.Name,
-			Email: p.Email,
+			Identifier: p.Identifier,
 			AccountNumber: p.AccountNumber,
 			Code: p.Code,
 			EventsId: p.EventsId,
@@ -160,7 +160,7 @@ func (ih *V1Handler) Verify(ctx *gin.Context) {
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
 		Name: reg.Name,
-		Email: reg.Email,
+		Identifier: reg.Identifier,
 		Status: reg.Status,
 		Information: info,
 		Statistics: stats,

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"go-gc-community/pkg/hash"
 	"go-gc-community/pkg/logger"
 	"time"
 
@@ -117,12 +116,8 @@ func setEnvironment(cfg *Config) {
 	cfg.Auth.RefreshExpiry = viper.GetDuration("auth.refresh_expiry")
 	
 	// Salt
-	salt, err := hash.Salt()
-	if err != nil {
-		panic(err)
-	}
-	
-	cfg.Hash.Salt = salt
+	cfg.Hash.Salt = []byte(viper.GetString("hash.salt"))
+
 }
 
 func parse() error {

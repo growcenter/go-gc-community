@@ -12,3 +12,5 @@ google:
 auth:
   secret: ""
   token_expiry: 2
+hash:
+  salt: ""

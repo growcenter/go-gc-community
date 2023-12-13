@@ -44,7 +44,7 @@ func (iu *internalUsecase) SetRole(request *models.SetRoleRequest) (*models.User
 	}
 
 	if request.RoleId == current.RoleId {
-		return nil, fmt.Errorf("No changes, your current role is %s", current.RoleId)
+		return nil, fmt.Errorf("no changes, your current role is %s", current.RoleId)
 	}
 
 	current.RoleId = request.RoleId

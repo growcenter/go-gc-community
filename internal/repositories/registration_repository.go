@@ -88,7 +88,7 @@ func (rr *registrationRepository) Update(reg *models.Registrations) (*models.Reg
 
 func (rr *registrationRepository) List(page, limit, sort, filter string) ([]*models.Registrations, error) {
 	var reg []*models.Registrations
-	err := rr.db.Scopes(Paginate(page, limit), Sort(sort), TripleFilter("name LIKE ? OR email LIKE ? OR account_number LIKE ?", filter)).Find(&reg).Error
+	err := rr.db.Scopes(Paginate(page, limit), Sort(sort), TripleFilter("name LIKE ? OR identifier LIKE ? OR account_number LIKE ?", filter)).Find(&reg).Error
 	if err != nil {
 		return reg, err
 	}

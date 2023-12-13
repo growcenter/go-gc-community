@@ -8,7 +8,7 @@ import (
 type Registrations struct {
 	ID					int				`json:"id"`
 	Name				string			`json:"name"`
-	Email				string			`json:"email"`
+	Identifier			string			`json:"identifier"`
 	Code				string			`json:"code"`
 	EventsId			int				`json:"events_id"`
 	SessionsId			int				`json:"sessions_id"`
@@ -25,12 +25,12 @@ type (
 	RegistrationRequest struct {
 		EventID				int						`json:"eventId" binding:"required"`
 		SessionID			int						`json:"eventSessionId" binding:"required"`
-		MainEmail			string					`json:"mainEmail" binding:"required"`
+		MainIdentifier		string					`json:"mainIdentifier" binding:"required"`
 		MainName			string					`json:"mainName" binding:"required"`
 		Others				[]OtherBookingRequest	`json:"otherBooking"`
 	}
 	OtherBookingRequest struct {
-		Email				string					`json:"email" binding:"email"`
+		Identifier			string					`json:"identifier"`
 		Name				string					`json:"name"`
 	}
 	RegistrationResponse struct {
@@ -41,14 +41,14 @@ type (
 		SessionID			int						`json:"eventSessionId"`
 		EventID				int						`json:"eventId"`
 		RequestedSeats		int						`json:"eventRequestedSeats"`
-		MainEmail			string					`json:"mainEmail"`
+		MainIdentifier		string					`json:"mainIdentifier"`
 		MainName			string					`json:"mainName"`
 		MainAccountNumber	string					`json:"mainAccountNumber"`
 		MainBookingCode		string					`json:"mainBookingCode"`
 		Others				[]OtherBookingResponse	`json:"otherBooking"`
 	}
 	OtherBookingResponse struct {
-		Email				string					`json:"email"`
+		Identifier			string					`json:"identifier"`
 		Name				string					`json:"name"`
 		BookingCode			string					`json:"bookingCode"`
 	}
@@ -58,7 +58,7 @@ type (
 	ViewRegistrationResponse struct {
 		ResponseCode		string					`json:"responseCode"`
 		ResponseMessage		string					`json:"responseMessage"`
-		MainEmail			string					`json:"mainEmail"`
+		MainIdentifier		string					`json:"mainIdentifier"`
 		MainName			string					`json:"mainName"`
 		MainStatus			string					`json:"mainStatus"`
 		MainAccountNumber	string					`json:"mainAccountNumber"`
@@ -68,7 +68,7 @@ type (
 		Others				[]OtherRegisResponse	`json:"otherBooking,omitempty"`
 	}
 	OtherRegisResponse struct {
-		Email				string					`json:"email"`
+		Identifier			string					`json:"identifier"`
 		Name				string					`json:"name"`
 		BookingCode			string					`json:"bookingCode"`
 		Status				string					`json:"status"`
@@ -77,7 +77,7 @@ type (
 
 type (
 	CancelRegistrationRequest struct {
-		Email				string					`json:"email" binding:"required"`
+		Identifier			string					`json:"identifier" binding:"required"`
 		Code				string					`json:"code"`
 	}
 )

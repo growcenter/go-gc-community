@@ -27,7 +27,7 @@ type (
 	}
 	RegistrationListDetail struct {
 		Name				string						`json:"name"`
-		Email				string						`json:"email"`
+		Identifier			string						`json:"identifier"`
 		AccountNumber		string						`json:"accountNumber"`
 		Code				string						`json:"code"`
 		EventsId			int							`json:"eventsId"`
@@ -46,7 +46,7 @@ type (
 		ResponseCode		string						`json:"responseCode"`
 		ResponseMessage		string						`json:"responseMessage"`
 		Name				string						`json:"name"`
-		Email				string						`json:"email"`
+		Identifier			string						`json:"identifier"`
 		Status				string						`json:"status"`
 		Information			EventInformationDetail		`json:"eventInformation"`
 		Statistics			EventStatisticsDetail		`json:"eventStatistics"`

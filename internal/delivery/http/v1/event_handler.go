@@ -160,7 +160,7 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 	list := make([]models.OtherBookingResponse, len(second))
 	for i, p := range second {
 		list[i] = models.OtherBookingResponse{
-			Email: p.Email,
+			Identifier: p.Identifier,
 			Name: p.Name,
 			BookingCode: p.Code,
 		}
@@ -174,7 +174,7 @@ func (eh *V1Handler) Register(ctx *gin.Context) {
 		SessionID: main.SessionsId,
 		EventID: event.ID,
 		RequestedSeats: count,
-		MainEmail: main.Email,
+		MainIdentifier: main.Identifier,
 		MainName: main.Name,
 		MainAccountNumber: main.AccountNumber,
 		MainBookingCode: main.Code,
@@ -221,7 +221,7 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 	list := make([]models.OtherRegisResponse, len(others))
 	for i, p := range others {
 		list[i] = models.OtherRegisResponse{
-			Email: p.Email,
+			Identifier: p.Identifier,
 			Name: p.Name,
 			BookingCode: p.Code,
 			Status: p.Status,
@@ -232,7 +232,7 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 		response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.ViewRegistrationResponse{
 			ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 			ResponseMessage: response.SUCCESS_DEFAULT,
-			MainEmail: main.Email,
+			MainIdentifier: main.Identifier,
 			MainName: main.Name,
 			MainStatus: main.Status,
 			MainAccountNumber: main.AccountNumber,
@@ -247,7 +247,7 @@ func (eh *V1Handler) View(ctx *gin.Context) {
 	response.Success(ctx.Writer, http.StatusOK, ctx.Request.URL.Path, models.ViewRegistrationResponse{
 		ResponseCode: fmt.Sprintf("%d%s%s", http.StatusOK, "00", "00"),
 		ResponseMessage: response.SUCCESS_DEFAULT,
-		MainEmail: main.Email,
+		MainIdentifier: main.Identifier,
 		MainName: main.Name,
 		MainStatus: main.Status,
 		MainAccountNumber: main.AccountNumber,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-gc-community/internal/models"
 	"go-gc-community/internal/repositories"
+	"go-gc-community/pkg/validate"
 	"strconv"
 	"strings"
 	"time"
@@ -67,15 +68,28 @@ func (eu *eventUsecase) Events(accountNumber string) ([]*models.Events, time.Tim
 		return nil, time.Now(), false, err
 	}
 
-	isRegistered, err := eu.rr.Find("booked_by", strings.ToLower(user.Email))
+	isEmailRegistered, err := eu.rr.Find("booked_by", strings.ToLower(user.Email))
 	if err != nil {
 		return nil, time.Now(), false, err
 	}
 	
+	if isEmailRegistered.ID == 0 {
+		isPhoneRegistered, err := eu.rr.Find("booked_by", user.PhoneNumber)
+		if err != nil {
+			return nil, time.Now(), false, err
+		}
+
+		if isPhoneRegistered.Status == "01" || isPhoneRegistered.Status == "00" {
+			return nil, time.Now(), false, err
+		}
+
+		return event, currentTime, true, nil
+	}
+
 	/*if isRegistered.ID != 0 {
 		return event, time.Now(), false, nil
 	}*/
-	if isRegistered.Status == "01" || isRegistered.Status == "00" {
+	if isEmailRegistered.Status == "01" || isEmailRegistered.Status == "00" {
 		return nil, time.Now(), false, err
 	}
 
@@ -126,16 +140,29 @@ func (eu *eventUsecase) Sessions(id string, accountNumber string) ([]*models.Ses
 		return nil, event, currentTime, false, err
 	}
 
-	isRegistered, err := eu.rr.Find("booked_by", strings.ToLower(user.Email))
+	isEmailRegistered, err := eu.rr.Find("booked_by", strings.ToLower(user.Email))
 	if err != nil {
 		return nil, event, currentTime, false, err
+	}
+
+	if isEmailRegistered.ID == 0 {
+		isPhoneRegistered, err := eu.rr.Find("booked_by", user.PhoneNumber)
+		if err != nil {
+			return nil, event, currentTime, false, err
+		}
+
+		if isPhoneRegistered.Status == "01" || isPhoneRegistered.Status == "00" {
+			return nil, event, currentTime, false, err
+		}
+
+		return session, event, currentTime, true, nil
 	}
 
 	/*if isRegistered.ID != 0 {
 		return session, event, currentTime, false, nil
 	}*/
 
-	if isRegistered.Status == "01" || isRegistered.Status == "00" {
+	if isEmailRegistered.Status == "01" || isEmailRegistered.Status == "00" {
 		return session, event, currentTime, false, nil
 	}
 
@@ -143,6 +170,13 @@ func (eu *eventUsecase) Sessions(id string, accountNumber string) ([]*models.Ses
 }
 
 func (eu *eventUsecase) Register(request *models.RegistrationRequest) (*models.Registrations, []*models.Registrations, bool, int, error) {
+	isEmailMain := validate.Email(strings.ToLower(request.MainIdentifier))
+	isPhoneMain := validate.PhoneNumber(request.MainIdentifier)
+	
+	if !isEmailMain && !isPhoneMain {
+		return nil, nil, false, 0, errors.New("email or phone number is not valid")
+	}
+
 	// Retrieve Event Data by EventId
 	event, err := eu.er.Find("id", request.EventID)
 	if err != nil {
@@ -202,43 +236,43 @@ func (eu *eventUsecase) Register(request *models.RegistrationRequest) (*models.R
 		return nil, nil, false, 0, errors.New("no seats left on this session")
 	}
 
-	isRegistered, err := eu.rr.Find("email", strings.ToLower(request.MainEmail))
+	isRegistered, err := eu.rr.Find("identifier", strings.ToLower(request.MainIdentifier))
 	if err != nil {
 		return nil, nil, false, 0, err
 	}
 
-	isBooked, err := eu.rr.Find("booked_by", strings.ToLower(request.MainEmail))
+	isBooked, err := eu.rr.Find("booked_by", strings.ToLower(request.MainIdentifier))
 	if err != nil {
 		return nil, nil, false, 0, err
 	}
 
-	isAccount, err := eu.ur.Find("email", strings.ToLower(request.MainEmail))
+	isAccount, err := eu.ur.FindMultipleExact("email", "phone_number", strings.ToLower(request.MainIdentifier))
 	if err != nil {
 		return nil, nil, false, 0, errors.New("user does not have account yet")
 	}
 
 	// Check if user already registered or not
-	if isRegistered.ID != 0 || strings.ToLower(isRegistered.Email) == strings.ToLower(request.MainEmail) {
+	if isRegistered.ID != 0 || strings.ToLower(isRegistered.Identifier) == strings.ToLower(request.MainIdentifier) {
 		return nil, nil, false, 0, errors.New("user already registered")
 	}
 	
 	// Check if the user already booked for other, means user can only register once
-	if isBooked.ID != 0 || strings.ToLower(isBooked.Email) == strings.ToLower(request.MainEmail) {
+	if isBooked.ID != 0 || strings.ToLower(isBooked.Identifier) == strings.ToLower(request.MainIdentifier) {
 		return nil, nil, false, 0, errors.New(fmt.Sprintf("You are already registered by: %s", strings.ToUpper(request.MainName)))
 	}
 
-	if isAccount.ID == 0 || strings.ToLower(isAccount.Email) != strings.ToLower(request.MainEmail) {
+	/*if isAccount.ID == 0 || strings.ToLower(isAccount.Email) != strings.ToLower(request.MainIdentifier) || strings.ToLower(isAccount.PhoneNumber) != strings.ToLower(request.MainIdentifier) {
 		return nil, nil, false, 0, errors.New("user does not have account yet")
-	}
+	} */
 
 	Reg := models.Registrations{
 		Name: strings.ToUpper(request.MainName),
-		Email: strings.ToLower(isAccount.Email),
+		Identifier: strings.ToLower(request.MainIdentifier),
 		Code: (uuid.New()).String(),
 		EventsId: event.ID,
 		SessionsId: session.ID,
 		Status: "01",
-		BookedBy: strings.ToLower(isAccount.Email),
+		BookedBy: strings.ToLower(request.MainIdentifier),
 		AccountNumber: isAccount.AccountNumber,
 	}
 
@@ -249,22 +283,29 @@ func (eu *eventUsecase) Register(request *models.RegistrationRequest) (*models.R
 
 	var others []*models.Registrations
 	for _, other := range request.Others {
-		isRegistered, err := eu.rr.Find("email", strings.ToLower(other.Email))
+		isEmailSecondary := validate.Email(strings.ToLower(other.Identifier))
+		isPhoneSecondary := validate.PhoneNumber(other.Identifier)
+		
+		if !isEmailSecondary && !isPhoneSecondary {
+			return nil, nil, false, 0, errors.New("email or phone number is not valid")
+		}
+
+		isRegistered, err := eu.rr.Find("identifier", strings.ToLower(other.Identifier))
 		if err != nil {
 			return nil, nil, false, 0, err
 		}
-		if isRegistered.ID != 0 || strings.ToLower(isRegistered.Email) == strings.ToLower(other.Email) {
+		if isRegistered.ID != 0 || strings.ToLower(isRegistered.Identifier) == strings.ToLower(other.Identifier) {
 			return nil, nil, false, 0, errors.New("user already registered")
 		}
 
 		otherReg := models.Registrations {
 			Name: strings.ToUpper(other.Name),
-			Email: strings.ToLower(other.Email),
+			Identifier: strings.ToLower(other.Identifier),
 			Code: (uuid.New()).String(),
 			EventsId: request.EventID,
 			SessionsId: request.SessionID,
 			Status: "01",
-			BookedBy: strings.ToLower(request.MainEmail),
+			BookedBy: strings.ToLower(request.MainIdentifier),
 		}
 
 		secondary, err := eu.rr.Create(&otherReg)
@@ -299,7 +340,7 @@ func (eu *eventUsecase) View(accountNumber string) (*models.Registrations, []*mo
 		return nil, nil, err
 	}
 
-	others, err := eu.rr.FindBatchExclude("booked_by", main.BookedBy, "email", main.Email)
+	others, err := eu.rr.FindBatchExclude("booked_by", main.BookedBy, "identifier", main.Identifier)
 	if err != nil {
 		return main, others, nil
 	}
@@ -323,15 +364,16 @@ func (eu *eventUsecase) Cancel(accountNumber string, request *models.CancelRegis
 		return nil, err
 	}
 
-	if strings.ToLower(user.Email) != strings.ToLower(request.Email) {
+	if strings.ToLower(user.Email) != strings.ToLower(request.Identifier) || strings.ToLower(user.PhoneNumber) != strings.ToLower(request.Identifier) {
 		return nil, errors.New("you are not the one who booked this registration")
 	}
 
-	if strings.ToLower(user.Email) != strings.ToLower(registration.BookedBy) {
+	if strings.ToLower(user.Email) != strings.ToLower(registration.BookedBy) || strings.ToLower(user.PhoneNumber) != strings.ToLower(registration.BookedBy) {
 		return nil, errors.New("you are not the one who booked this registration")
 	}
 
-	registration.UpdatedBy = user.Email
+	//registration.UpdatedBy = user.Email
+	registration.UpdatedBy = request.Identifier
 	registration.Status = "02"
 
 	update, err := eu.rr.Update(registration)
