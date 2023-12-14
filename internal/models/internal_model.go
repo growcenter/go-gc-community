@@ -2,9 +2,9 @@ package models
 
 type (
 	SetRoleRequest struct {
-		Email				string					`json:"email" validate:"required, email"`
-		AccountNumber 		string					`json:"accountNumber" validate:"required"`
-		RoleId				string					`json:"roleId" validate:"required"`
+		Email				string					`json:"email" binding:"required"`
+		AccountNumber 		string					`json:"accountNumber" binding:"required"`
+		RoleId				string					`json:"roleId" binding:"required"`
 	}
 	SetRoleResponse struct {
 		ResponseCode		string					`json:"responseCode"`
@@ -27,7 +27,7 @@ type (
 	}
 	RegistrationListDetail struct {
 		Name				string						`json:"name"`
-		Email				string						`json:"email"`
+		Identifier			string						`json:"identifier"`
 		AccountNumber		string						`json:"accountNumber"`
 		Code				string						`json:"code"`
 		EventsId			int							`json:"eventsId"`
@@ -40,13 +40,13 @@ type (
 
 type (
 	VerifyRegistrationRequest struct {
-		Code				string						`json:"code" validate:"required"`
+		Code				string						`json:"code" binding:"required"`
 	}
 	VerifyRegistrationResponse struct {
 		ResponseCode		string						`json:"responseCode"`
 		ResponseMessage		string						`json:"responseMessage"`
 		Name				string						`json:"name"`
-		Email				string						`json:"email"`
+		Identifier			string						`json:"identifier"`
 		Status				string						`json:"status"`
 		Information			EventInformationDetail		`json:"eventInformation"`
 		Statistics			EventStatisticsDetail		`json:"eventStatistics"`

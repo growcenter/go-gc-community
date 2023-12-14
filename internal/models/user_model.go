@@ -15,6 +15,7 @@ type User struct {
 	CommunityName		string			`json:"community_name"`
 	Email				string			`json:"email"`
 	PhoneNumber			string			`json:"phone_number"`
+	Password			string			`json:"password"`
 	Location			string			`json:"location"`
 	Address				string			`json:"address"`
 	Age					string			`json:"age"`
@@ -28,8 +29,8 @@ type User struct {
 
 type (
 	UserLoginRequest struct {
-		Name			string		`json:"name" validate:"required"`
-		Email			string		`json:"email" validate:"required, email"`
+		Name			string		`json:"name" binding:"required"`
+		Email			string		`json:"email" binding:"required"`
 	}
 
 	UserLoginResponse struct {
@@ -42,8 +43,44 @@ type (
 )
 
 type (
+	UserManualRegisterRequest struct {
+		Name			string		`json:"name" binding:"required"`
+		Identifier		string		`json:"identifier" binding:"required"`
+		Password		string		`json:"password" binding:"required"`
+	}
+	UserManualRegisterResponse struct {
+		ResponseCode	string		`json:"responseCode"`
+		ResponseMessage	string		`json:"responseMessage"`
+		Name			string		`json:"name"`
+		Email			string		`json:"email,omitempty"`
+		PhoneNumber		string		`json:"phoneNumber,omitempty"`
+		Password		string		`json:"password"`
+		AccountNumber	string		`json:"accountNumber"`
+		Token			string		`json:"token"`
+		UserID			int			`json:"userID"`
+	}
+)
+
+type (
+	UserManualLoginRequest struct {
+		Identifier		string		`json:"identifier" binding:"required"`
+		Password		string		`json:"password" binding:"required"`
+	}
+	UserManualLoginResponse struct {
+		ResponseCode	string		`json:"responseCode"`
+		ResponseMessage	string		`json:"responseMessage"`
+		Name			string		`json:"name"`
+		Email			string		`json:"email,omitempty"`
+		PhoneNumber		string		`json:"phoneNumber,omitempty"`
+		AccountNumber	string		`json:"accountNumber"`
+		Token			string		`json:"token"`
+		UserID			int			`json:"userID"`
+	}
+)
+
+type (
 	InquiryUserRequest struct {
-		AccountNumber	string			`json:"accountNumber" validate:"required"`
+		AccountNumber	string			`json:"accountNumber" binding:"required"`
 		Additional		AdditionalInfo	`json:"additionalInfo"`
 	}
 	

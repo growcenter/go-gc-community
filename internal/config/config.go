@@ -21,6 +21,7 @@ type  (
 		Http		HttpConfig
 		Google		GoogleConfig
 		Auth		AuthConfig
+		Hash		HashConfig
 	}
 
 	AppConfig struct {
@@ -55,6 +56,10 @@ type  (
 		//TokenExpiry time.Duration
 		TokenExpiry int
 		RefreshExpiry time.Duration
+	}
+
+	HashConfig struct {
+		Salt []byte
 	}
 )
 
@@ -109,6 +114,10 @@ func setEnvironment(cfg *Config) {
 	cfg.Auth.Secret = viper.GetString("auth.secret")
 	cfg.Auth.TokenExpiry = viper.GetInt("auth.token_expiry")
 	cfg.Auth.RefreshExpiry = viper.GetDuration("auth.refresh_expiry")
+	
+	// Salt
+	cfg.Hash.Salt = []byte(viper.GetString("hash.salt"))
+
 }
 
 func parse() error {
